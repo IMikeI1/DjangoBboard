@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Регистрация успешна{% endblock %}
+{% block content %}
+<div class="profile-container">
+    <h2>Регистрация прошла успешно!</h2>
+    <p>Вы успешно зарегистрировались на сайте. Теперь вы можете войти в свой аккаунт.</p>
+    <a href="/" class="btn btn-primary">Вернуться на главную</a>
+    <a href="{% url 'login' %}" class="btn">Войти</a>
+</div>
+{% endblock %}

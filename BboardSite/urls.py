@@ -12,11 +12,26 @@ Class-based views
     2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+    2. Add a URL to urlpatterns:  path('bboard/', include('bboard.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from BboardSite import settings
+from django.conf.urls.static import static
+from django.conf import settings
+from bboard.views import page_not_found
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-]
+    path('', include('bboard.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('users/', include('users.urls')),
+    path('password_change/', auth_views.PasswordChangeView.as_view(template_name='registration/password_change_form.html'), name='password_change'),
+    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+handler404 = page_not_found
+
+handler403 = 'bboard.views.forbidden'
+handler500 = 'bboard.views.server_error'

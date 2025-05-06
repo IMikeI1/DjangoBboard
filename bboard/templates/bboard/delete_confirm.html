@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{# Устанавливаем заголовок страницы #}
+{% block title %}Удалить объявление{% endblock %}
+{% block content %}
+{# Заголовок с названием объявления, которое удаляется #}
+<h2>Удалить "{{ item.title }}"?</h2>
+{# Форма подтверждения удаления #}
+<form method="POST">
+    {% csrf_token %}
+    <div class="ad-actions">
+        <button type="submit" class="btn btn-danger">Подтвердить удаление</button>
+        <a href="{% url 'bboard:index' %}" class="btn btn-warning">Отмена</a>
+    </div>
+</form>
+{% endblock %}

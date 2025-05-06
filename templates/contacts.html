@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Контакты{% endblock %}
+{% block content %}
+<div class="contacts-container">
+    <h2>Контакты</h2>
+    <div class="contact-info">
+        <p><strong>Email:</strong> {{ email }}</p>
+        <p><strong>Телефон:</strong> {{ phone }}</p>
+        <p><strong>Адрес:</strong> {{ address }}</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block content %}
+
+<div class="profile-container">
+    <h2>Профиль пользователя</h2>
+    <div class="profile-info">       
+        <p><strong>Логин:</strong> {{ user.username }}</p>
+        <p><strong>Имя:</strong> {{ user.first_name }}</p>
+        <p><strong>Фамилия:</strong> {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+    </div>
+    <div class="profile-actions">
+        <a href="{% url 'users:edit_profile' %}" class="btn btn-primary">Редактировать профиль</a>
+        <a href="{% url 'password_change' %}" class="btn">Изменить пароль</a>
+    </div>
+</div>
+{% endblock %} 

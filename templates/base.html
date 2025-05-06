@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Ретро Авто Машины{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <header>
+        <h1><a href="/">Ретро Авто Машины</a></h1>
+        <img src="{% static 'img/Ford Mustang 1967.jpg' %}" alt="Ford Mustang 1967" width="150" height="auto">
+        <nav>
+            <a href="{% url 'bboard:about' %}">О сайте</a>
+            <a href="{% url 'bboard:contacts' %}">Контакты</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'bboard:add' %}">Добавить объявление</a>
+                <a href="{% url 'users:profile' %}">Профиль</a>
+                <span class="user-info">
+                    Привет, {{ user.username }} |
+                    <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-link">Выход</button>
+                    </form>
+                </span>
+            {% else %}
+                <span class="auth-links">
+                    <a href="{% url 'login' %}">Вход</a> |
+                    <a href="{% url 'users:register' %}">Регистрация</a>
+                </span>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Контакты</h3>
+                <p><i class="fas fa-envelope"></i> Email: retrocars@yandex.ru</p>
+                <p><i class="fas fa-phone"></i> Телефон: +7 (999) 123-45-67</p>
+                <p><i class="fab fa-whatsapp"></i> WhatsApp: +7 (921) 443-58-08</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Адрес</h3>
+                <p><i class="fas fa-map-marker-alt"></i> г. Москва, ул. Автомобильная, д. 1</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>О нас</h3>
+                <p>Ретро Авто Машины - ваш надежный партнер в мире классических автомобилей</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 Ретро Авто Машины. Все права защищены.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

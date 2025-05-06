@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{# Устанавливаем заголовок страницы #}
+{% block title %}Объявления{% endblock %}
+{% block content %}
+<h2>Объявления (всего: {{ total_count }})</h2> {# Заголовок с общим числом объявлений #}
+<ul>
+    {% for obj in page_items %}
+        {% with item=obj.item can_edit=obj.can_edit %}
+        <li>
+            {% if item.slug %}
+                <h3 class="ad-title"><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h3>
+            {% else %}
+                <h3 class="ad-title">{{ item.title }}</h3>
+            {% endif %}
+            <br>
+            {% if item.image %} {# Если есть изображение — выводим его #}
+                <img src="{{ item.image.url }}" alt="{{ item.title }}" width="150">
+            {% endif %}
+            <p>Автор: {{ item.user.username }}</p>
+            <p><strong>Стоимость:</strong> {{ item.price }} руб.</p>
+            <p><strong>Стоимость аренды:</strong> {{ item.price_arenda_car }} руб/час.</p>
+            {% if can_edit %}
+                <div class="ad-actions">
+                    <a href="{% url 'bboard:delete' slug=item.slug %}" class="btn btn-danger">Удалить</a>
+                    <a href="{% url 'bboard:edit' slug=item.slug %}" class="btn btn-warning">Редактировать</a>
+                </div>
+            {% endif %}
+        </li>
+        {% endwith %}
+    {% empty %}
+        <li>Нет объявлений</li>
+    {% endfor %}
+</ul>
+
+{# Блок пагинации (переключение между страницами) #}
+
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1" class="btn btn-secondary">&laquo; первая</a>
+        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">назад</a>
+    {% endif %}
+
+    <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages  }}</span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">вперёд</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary">последняя &raquo;</a>
+    {% endif %}
+</div>
+{% endblock %}
