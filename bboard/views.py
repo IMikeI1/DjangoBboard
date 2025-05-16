@@ -8,7 +8,7 @@ from django.db.utils import IntegrityError
 from django.template import RequestContext
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-
+from django.db.models import Q
 # Функция-проверка: является ли пользователь администратором
 def is_admin(user):
     return user.is_authenticated and user.is_staff
@@ -29,9 +29,15 @@ def contacts(request):
     return render(request, 'contacts.html', context)  # Передаём контакты в шаблон
 
 
-# Главная страница — список всех объявлений с пагинацией
+# Поиск объявлений
 def index(request):
+    query = request.GET.get('query')
     bboards = Bboard.objects.all().order_by('-created_at')
+    if query:
+        bboards = bboards.filter(
+            Q(title__icontains=query) | Q(user__username__icontains=query)
+        )
+    # Главная страница — список всех объявлений с пагинацией
     paginator = Paginator(bboards, 4)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

@@ -3,6 +3,12 @@
 {# Устанавливаем заголовок страницы #}
 {% block title %}Объявления{% endblock %}
 {% block content %}
+
+<form method="get" class="search-form">
+    <input type="text" name="query" placeholder="Поиск по заголовку или автору">
+    <button type="submit">Найти</button>
+</form>
+
 <h2>Объявления (всего: {{ total_count }})</h2> {# Заголовок с общим числом объявлений #}
 <ul>
     {% for obj in page_items %}
