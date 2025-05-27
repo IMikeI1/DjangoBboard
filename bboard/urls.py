@@ -3,11 +3,13 @@ from . import views
 from .views import about, contacts
 from django.contrib.auth.views import LogoutView
 from django.db import IntegrityError
+from bboard.views import filter_bboard
 
 app_name = 'bboard'
 
 # Основной список маршрутов
 urlpatterns = [
+    path('filter/', filter_bboard, name='filter'),
     path('about/', views.about, name='about'),
     path('contacts/', views.contacts, name='contacts'),
     path('logout/', LogoutView.as_view(), name='logout'),

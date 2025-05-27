@@ -3,12 +3,14 @@ from .models import Bboard
 from .forms import BboardForm
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
 from slugify import slugify
 from django.db.utils import IntegrityError
 from django.template import RequestContext
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Q
+from .forms import FilterForm
 # Функция-проверка: является ли пользователь администратором
 def is_admin(user):
     return user.is_authenticated and user.is_staff
@@ -43,6 +45,7 @@ def index(request):
     page_obj = paginator.get_page(page_number)
     total_count = bboards.count()
     # Формируем список объявлений с can_edit
+    filter_form = FilterForm()
     page_items = []
     user = request.user
     for item in page_obj:
@@ -52,6 +55,7 @@ def index(request):
         'page_obj': page_obj,
         'page_items': page_items,
         'total_count': total_count,
+        'filter_form': FilterForm(),
     })
 
 
@@ -123,6 +127,37 @@ def edit_bboard(request, slug):
     return render(request, 'bboard/edit.html', {'form': form, 'item': item})
 
 
+def filter_bboard(request):
+    author_id = request.GET.get('author')
+    created_at = request.GET.get('created_at')
+    
+    query = Q()
+    if author_id:
+        query &= Q(user_id=author_id)
+    if created_at:
+        query &= Q(created_at__date=created_at)
+    
+    bboards = Bboard.objects.filter(query).order_by('-created_at')
+    
+    paginator = Paginator(bboards, 4)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    total_count = bboards.count()
+    
+    # Формируем список объявлений с can_edit
+    page_items = []
+    user = request.user
+    for item in page_obj:
+        can_edit = user.is_authenticated and (user.is_staff or item.user == user)
+        page_items.append({'item': item, 'can_edit': can_edit})
+    
+    context = {
+        'page_obj': page_obj,
+        'page_items': page_items,
+        'total_count': total_count,
+        'filter_form': FilterForm(),
+    }
+    return render(request, 'bboard/index.html', context=context)
 
 
 

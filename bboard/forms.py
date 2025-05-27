@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import Bboard
 
 class BboardForm(forms.ModelForm):
@@ -33,4 +34,13 @@ class BboardForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance 
-
+    
+    
+    
+    
+class FilterForm(forms.Form):
+    author = forms.ModelMultipleChoiceField(queryset=User.objects.all(), label='Автор')
+    created_at = forms.DateField(label='Дата публикации', 
+                                 widget=forms.DateInput(attrs={'type':'date'}),
+                                 input_formats=['%Y-%m-%d'],
+                                 required=False)

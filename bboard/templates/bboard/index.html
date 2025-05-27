@@ -8,7 +8,14 @@
     <input type="text" name="query" placeholder="Поиск по заголовку или автору">
     <button type="submit">Найти</button>
 </form>
-
+<div class="filter-form">
+    <form action="{% url 'bboard:filter' %}" method="get">
+        {% comment %} {{ filter_form.author}}
+        {{ filter_form.created_at}} {% endcomment %}
+        {{ filter_form.as_p }}
+        <button type="submit">Фильтровать</button>
+    </form>
+</div>
 <h2>Объявления (всего: {{ total_count }})</h2> {# Заголовок с общим числом объявлений #}
 <ul>
     {% for obj in page_items %}
@@ -26,6 +33,7 @@
             <p>Автор: {{ item.user.username }}</p>
             <p><strong>Стоимость:</strong> {{ item.price }} руб.</p>
             <p><strong>Стоимость аренды:</strong> {{ item.price_arenda_car }} руб/час.</p>
+            <p><strong>Дата публикации:</strong> {{ item.created_at|date:"d.m.Y H:i" }}</p>
             {% if can_edit %}
                 <div class="ad-actions">
                     <a href="{% url 'bboard:delete' slug=item.slug %}" class="btn btn-danger">Удалить</a>

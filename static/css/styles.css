@@ -1,5 +1,5 @@
 /*
-Основные стили для всего сайт
+Основные стили для всего сайта
 */
 body {
     font-family: 'Segoe UI', Arial, sans-serif; 
@@ -51,6 +51,41 @@ body {
 
 .search-form button[type="submit"]:active {
     transform: scale(0.98);
+}
+
+.filter-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 50px;
+    margin-bottom: 20px;
+}
+
+.filter-form form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-form select {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.filter-form button[type="submit"] {
+    padding: 0.4rem 1.2rem;
+    border: 2px solid #34495e;
+    background-color: #34495e;
+    color: white;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.filter-form p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 /*
