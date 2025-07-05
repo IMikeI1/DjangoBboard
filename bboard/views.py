@@ -1,165 +1,231 @@
-from django.shortcuts import render
-from .models import Bboard
-from .forms import BboardForm
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User
-from slugify import slugify
-from django.db.utils import IntegrityError
-from django.template import RequestContext
-from django.core.exceptions import PermissionDenied
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .forms import FilterForm
-# Функция-проверка: является ли пользователь администратором
-def is_admin(user):
-    return user.is_authenticated and user.is_staff
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from .models import Addd
+from .forms import AdddForm, FilterForm
+from django.http import HttpResponseNotFound
+
+def trigger_404(request):
+    return HttpResponseNotFound(render(request, 'blog/404.html'))
+
+def trigger_403(request):
+    return HttpResponseNotFound(render(request, 'blog/403.html'))
+
+def trigger_500(request):
+    return HttpResponseNotFound(render(request, 'blog/500.html'))
 
 
-# Статическая страница "О сайте"
-def about(request):
-    return render(request, 'about.html')  # Просто отображаем шаблон
 
 
-# Статическая страница "Контакты"
-def contacts(request):
-    context = {
-        'email': 'retrocars@example.com',
-        'phone': '+7 (999) 123-45-67',
-        'address': 'г. Москва, ул. Автомобильная, д. 1'
-    }
-    return render(request, 'contacts.html', context)  # Передаём контакты в шаблон
 
-
-# Поиск объявлений
 def index(request):
-    query = request.GET.get('query')
-    bboards = Bboard.objects.all().order_by('-created_at')
-    if query:
-        bboards = bboards.filter(
-            Q(title__icontains=query) | Q(user__username__icontains=query)
-        )
-    # Главная страница — список всех объявлений с пагинацией
-    paginator = Paginator(bboards, 4)
+    addds = Addd.objects.all()
+    paginator = Paginator(addds, 3)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    total_count = bboards.count()
-    # Формируем список объявлений с can_edit
-    filter_form = FilterForm()
-    page_items = []
-    user = request.user
-    for item in page_obj:
-        can_edit = user.is_authenticated and (user.is_staff or item.user == user)
-        page_items.append({'item': item, 'can_edit': can_edit})
-    return render(request, 'bboard/index.html', {
-        'page_obj': page_obj,
-        'page_items': page_items,
-        'total_count': total_count,
-        'filter_form': FilterForm(),
-    })
+    count_addds = addds.count()
 
-
-# Добавление нового объявления (только для авторизованных пользователей)
-@login_required
-def add_bboard(request):
-    if request.method == 'POST':  # Обработка отправки формы
-        form = BboardForm(request.POST, request.FILES)  # Заполняем форму с данными и файлами
-        if form.is_valid():  # Проверка валидности
-            try:
-                form.save(user=request.user)  # Сохраняем с привязкой к текущему пользователю
-                return redirect('bboard:index')  # Перенаправляем на главную страницу
-            except IntegrityError:
-                form.add_error(None, "Объявление с таким заголовком уже существует.")  # Обработка ошибки уникальности
-    else:
-        form = BboardForm()  # Пустая форма при GET-запросе
-    return render(request, 'bboard/add.html', {'form': form})  # Отображаем шаблон с формой
-
-
-# Просмотр одного объявления по slug (только авторизованные)
-@login_required
-def detail_bboard(request, slug):
-    item = get_object_or_404(Bboard, slug=slug)  # Получаем объект или 404
-    return render(request, 'bboard/detail.html', {'item': item})  # Показываем объявление
-
-
-# Удаление объявления (только автор или админ)
-@login_required
-def delete_bboard(request, slug):
-    item = get_object_or_404(Bboard, slug=slug)  # Получаем объявление по slug
-    if not (request.user.is_staff or item.user == request.user):
-        raise PermissionDenied  # Если не автор и не админ — ошибка доступа
-    if request.method == 'POST':
-        item.delete()  # Удаляем объявление
-        return redirect('bboard:index')  # Возвращаемся на главную
-    return render(request, 'bboard/delete_confirm.html', {'item': item})  # Показываем подтверждение удаления
-
-
-# Обработка ошибки 404 — Страница не найдена
-def page_not_found(request, exception):
-    context = RequestContext(request)  # Создаём контекст
-    response = render(request, '404.html', context=context.flatten())  # Отображаем шаблон ошибки
-    response.status_code = 404
-    return response
-
-
-# Обработка ошибки 403 — Доступ запрещён
-def forbidden(request, exception):
-    return render(request, '403.html', status=403)
-
-
-# Обработка ошибки 500 — Внутренняя ошибка сервера
-def server_error(request):
-    return render(request, '500.html', status=500)
-
-
-@login_required
-def edit_bboard(request, slug):
-    item = get_object_or_404(Bboard, slug=slug)
-    if not (request.user.is_staff or item.user == request.user):
-        raise PermissionDenied
-    if request.method == 'POST':
-        form = BboardForm(request.POST, request.FILES, instance=item)
-        if form.is_valid():
-            form.save(user=request.user)
-            return redirect('bboard:index')
-    else:
-        form = BboardForm(instance=item)
-    return render(request, 'bboard/edit.html', {'form': form, 'item': item})
-
-
-def filter_bboard(request):
-    author_id = request.GET.get('author')
-    created_at = request.GET.get('created_at')
-    
-    query = Q()
-    if author_id:
-        query &= Q(user_id=author_id)
-    if created_at:
-        query &= Q(created_at__date=created_at)
-    
-    bboards = Bboard.objects.filter(query).order_by('-created_at')
-    
-    paginator = Paginator(bboards, 4)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    total_count = bboards.count()
-    
-    # Формируем список объявлений с can_edit
-    page_items = []
-    user = request.user
-    for item in page_obj:
-        can_edit = user.is_authenticated and (user.is_staff or item.user == user)
-        page_items.append({'item': item, 'can_edit': can_edit})
-    
     context = {
+        'title': 'Главная страница',
         'page_obj': page_obj,
-        'page_items': page_items,
-        'total_count': total_count,
-        'filter_form': FilterForm(),
+        'count_posts': count_addds
     }
-    return render(request, 'bboard/index.html', context=context)
+    return render(request, 'bboard/index.html', context)
+
+def about(request):
+    return render(request, 'bboard/about.html', {'title': 'О сайте'})
+
+
+@login_required
+def user_info(request, pk):
+    user_addds = Addd.objects.filter(author=pk)
+    paginator = Paginator(user_addds, 3)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    count_addds = user_addds.count()
+
+    context = {
+        'title': 'Мои объявления',
+        'page_obj': page_obj,
+        'count_posts': count_addds,
+    }
+    return render(request, 'bboard/user_info.html', context)
+
+
+@login_required
+def add_addd(request):
+    if request.method == 'GET':
+        addd_form = AdddForm()
+        context = {'form': addd_form, 'title': 'Добавить объявление'}
+        return render(request, template_name='bboard/addd_add.html', context=context)
+
+    if request.method == 'POST':
+        addd_form = AdddForm(data=request.POST, files=request.FILES)
+        if addd_form.is_valid():
+            addd = addd_form.save(commit=False)
+            addd.author = request.user  # <-- вот где правильно установить автора
+            addd.save()
+            return redirect('bboard:read_addd', slug=addd.slug) 
+        else:
+            context = {'form': addd_form, 'title': 'Добавить объявление'}
+            return render(request, 'bboard/addd_add.html', context)
+    # if request.method == 'GET':
+    #     post_form = AdddForm(author=request.user)
+    #     context = {'form': post_form, 'title': 'Добавить объявление'}
+    #     return render(request, template_name='bboard/addd_add.html', context=context)
+    # if request.method == 'POST':
+    #     post_form = AdddForm(data = request.POST, files=request.FILES, author=request.user)
+    #     if post_form.is_valid():
+    #         # post = Post()
+    #         # post.title = post_form.cleaned_data['title']
+    #         # post.text = post_form.cleaned_data['text']
+    #         # post.author = post_form.cleaned_data['author'] # request.user
+    #         # post.image = post_form.cleaned_data['image']
+    #         post_form.save()
+    #         return index(request)
+
+
+
+def read_addd(request, slug):
+    addd = get_object_or_404(Addd, slug=slug)
+    context = {'addd': addd, 'title': addd.title}
+    return render(request, template_name='bboard/addd_detail.html', context=context)
+
+@login_required
+def update_addd(request, slug):
+    addd = get_object_or_404(Addd, slug=slug)
+
+    if request.method == 'POST':
+        form = AdddForm(data=request.POST, files=request.FILES, instance=addd, initial={'author': addd.author})
+        if form.is_valid():
+            addd.title = form.cleaned_data['title']
+            addd.content = form.cleaned_data['content']
+            addd.author = form.cleaned_data['author']
+            addd.image = form.cleaned_data['image']
+            addd.save()
+            return redirect('bboard:read_addd', slug=addd.slug)
+    else:
+        form = AdddForm(initial={
+            'title': addd.title,
+            'content': addd.content,
+            'image': addd.image,
+            'author': addd.author,
+            'price': addd.price,
+            'brand': addd.brand,
+            'model': addd.model,
+                        
+        }, author=request.user)
+
+    return render(request, template_name='bboard/addd_update.html', context={'form': form})
+
+
+
+
+def user_addd(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    posts = Addd.objects.filter(author=user).order_by('-created_at')
+
+    context = {
+        'user': user,       # для заголовка
+        'posts': posts,     # список объявлений пользователя
+    }
+    return render(request, 'bboard/user_addd.html', context)
 
 
 
 
 
+
+@login_required
+def edit_addd(request, slug):
+    addd = get_object_or_404(Addd, slug=slug)
+
+    if request.method == 'POST':
+        form = AdddForm(data=request.POST, files=request.FILES, author=request.user)
+        if form.is_valid():
+            addd.title = form.cleaned_data['title']
+            addd.content = form.cleaned_data['content']
+            addd.author = form.cleaned_data['author']
+            addd.image = form.cleaned_data['image']
+            addd.save()
+            return detail_addd(request, addd.slug)
+    else:
+        form = AdddForm(initial={
+            'title': addd.title,
+            'content': addd.content,
+            'image': addd.image,
+        }, author=request.user)
+
+    return render(request, 'bboard/addd_edit.html', context={'form': form})
+
+
+
+@login_required
+def delete_addd(request, addd_id):
+    addd = get_object_or_404(Addd, pk=addd_id, user=request.user)
+    if request.method == 'POST':
+        addd.delete()
+        return redirect('bboard:user_info', pk=request.user.pk)
+    return render(request, 'bboard/addd_delete.html', {'title': 'Удаление объявления', 'addd': addd})
+
+
+# Кастомные страницы ошибок
+
+def page_not_found(request, exception):
+    return render(request, template_name='bboard/404.html', context={'title': '404'})
+
+
+def forbidden(request, exception):
+    return render(request, template_name='bboard/403.html', context={'title': '403'})
+
+
+def server_error(request):
+    return render(request, template_name='bboard/500.html', context={'title': '500'})
+
+
+# Поиск по объявлениям
+
+def search_addd(request):
+    query = request.GET.get('query')
+    query_text = Q(title__icontains=query) | Q(content__icontains=query)
+    results = Addd.objects.filter(query_text)
+
+    paginator = Paginator(results, 3)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    count_addds = results.count()
+
+    context = {
+        'title': 'Результаты поиска',
+        'page_obj': page_obj,
+        'count_posts': count_addds
+    }
+    return render(request, template_name='bboard/index.html', context=context)
+
+
+
+
+def filter_addd(request):
+    author_id = request.GET.get('author')
+    if not author_id:
+        results = Addd.objects.all()
+    else:
+        author = get_object_or_404(User, pk=author_id)
+        results = Addd.objects.filter(user=author)
+
+    paginator = Paginator(results, 3)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    count_addds = results.count()
+    filter_form = FilterForm()
+
+    context = {
+        'title': 'Фильтр объявлений',
+        'page_obj': page_obj,
+        'count_posts': count_addds,
+        'post_text': 'Результаты фильтрации',
+        'filter_form': filter_form
+    }
+    return render(request, template_name='bboard/index.html', context=context)

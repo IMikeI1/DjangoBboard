@@ -1,0 +1,28 @@
+{% extends 'bboard/base.html' %}
+{% load static %}
+
+
+{% block content %}
+{% if user == request.user%}
+    <h2>Мои объявления</h2>
+{% else %}
+    <h2>Объяевления пользователя {{user.username}}</h2>
+{% endif%}
+<div class="post-list">
+    {% for addd in addds %}
+        <div class="post-item">
+            <div>
+                <h3><b>{{ addd.author }}</b></h3>
+            </div>
+            {% if post.image %}
+                <img src="{{post.image.url}}" width="150px" height="auto">
+            {% else %}
+                <img src="{% static 'img/no_image.jpg' %}" width="150px" height="auto">
+            {% endif %}
+            <h4><a href="{{addd.get_absolute_url}}">{{ addd.title }}</a></h4>
+            <p>{{ addd.text }}</p>
+            <p>{{ addd.created_at }}</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock content %}

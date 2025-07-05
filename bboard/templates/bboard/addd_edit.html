@@ -1,0 +1,13 @@
+{% extends 'bboard/base.html' %}
+
+{% block content %}
+<div class="update-list">
+<h2>Редактировать объявление</h2>
+<form action="" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="custom-button">Изменить объявление</button>
+</form>
+</div>
+
+{% endblock content %}

@@ -2,7 +2,7 @@
 URL configuration for BboardSite project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
+    https://docs.djangoproject.com/en/5.2/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -21,20 +21,14 @@ from django.conf.urls.static import static
 from django.conf import settings
 from bboard.views import page_not_found
 from django.contrib.auth import views as auth_views
+from bboard.views import index, about
 
 urlpatterns = [
+    path('', index, name='index'),
+    path('bboard/', include('bboard.urls')),
     path('admin/', admin.site.urls),
-    path('', include('bboard.urls')),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('about/', about, name='about'),
     path('users/', include('users.urls')),
-    path('password_change/', auth_views.PasswordChangeView.as_view(template_name='registration/password_change_form.html'), name='password_change'),
-    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
-] 
-
+]
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
-
-handler404 = page_not_found
-
-handler403 = 'bboard.views.forbidden'
-handler500 = 'bboard.views.server_error'
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

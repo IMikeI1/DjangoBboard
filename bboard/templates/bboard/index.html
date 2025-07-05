@@ -1,65 +1,126 @@
-{% extends 'base.html' %}
+{% extends 'bboard/base.html' %}
+{% load static %}
+{% load custom_tags %}
+{% comment %} {% block content %}
+    <form action="{% url 'bboard:search_addd' %}" method="get">
+        <input type="search" name="query">
+        <button type="submit" class="search-button">Поиск</button>
+    </form>
+    <form action="{% url 'bboard:filter_addd' %}" method="get">
+        {{filter_form.as_p}}
+        <button type="submit" class="filter-button">Фильтровать</button>
+    </form>
+    <h2>{{post_text}}</h2>
+    {% if page_obj|length == 0 %}
+        <h3>По вашему запросу ничего не найдено!</h3>
+    {% else %}
+        <div class="post-list">
+            {% for post in page_obj %}
+                <div class="post-item">
+                    <div>
+                        <a href="{% url 'bboard:user_addd' user_id=post.author.pk %}">
+                            <h3><b>{{ post.author }}</b></h3>
+                        </a>
+                    </div>
+                    {% if post.image %}
+                        <img src="{{post.image.url}}" width="150px" height="auto">
+                    {% else %}
+                        <img src="{% static 'img/no_image.jpg' %}" width="150px" height="auto">
+                    {% endif %}
+                    <h4><a href="{{post.get_absolute_url}}">{{ post.title }}</a></h4>
+                    <p>{{ post.text }}</p>
+                    <p><strong>Марка:</strong> {{ post.brand }}</p>
+                    <p><strong>Модель:</strong> {{ post.model }}</p>
+                    <p><strong>Год выпуска:</strong> {{ post.year }}</p>
+                    <p><strong>Цена:</strong> {{ post.price }} ₽</p>
+                    <p>{{ post.created_at }}</p>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="pagination">
+            <div class="step-links">
+                <form method="get" style="display: inline;">
+                    {% if page_obj.has_previous %}
+                        <button type="submit" name="page" value="1">&laquo; Первая</button>
+                        <button type="submit" name="page" value="{{ page_obj.previous_page_number }}">Предыдущая</button>
+                    {% endif %}
+                    <span class="current">
+                        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                    </span>
+                    {% if page_obj.has_next %}
+                        <button type="submit" name="page" value="{{ page_obj.next_page_number }}">Следующая</button>
+                        <button type="submit" name="page" value="{{ page_obj.paginator.num_pages }}">Последняя &raquo;</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}  {% endcomment %}
 
-{# Устанавливаем заголовок страницы #}
-{% block title %}Объявления{% endblock %}
+
+
+{% comment %} {% extends 'bboard/base.html' %}
+{% load static %}
+{% load custom_tags %} {% endcomment %}
+
 {% block content %}
-
-<form method="get" class="search-form">
-    <input type="text" name="query" placeholder="Поиск по заголовку или автору">
-    <button type="submit">Найти</button>
-</form>
-<div class="filter-form">
-    <form action="{% url 'bboard:filter' %}" method="get">
-        {% comment %} {{ filter_form.author}}
-        {{ filter_form.created_at}} {% endcomment %}
+<div class="search_list">
+    <form action="{% url 'bboard:search_addd' %}" method="get">
+        <input type="search" name="query">
+        <button type="submit" class="search-button">Поиск</button>
+    </form>
+    <form action="{% url 'bboard:filter_addd' %}" method="get">
         {{ filter_form.as_p }}
-        <button type="submit">Фильтровать</button>
+        <button type="submit" class="filter-button">Фильтровать</button>
     </form>
 </div>
-<h2>Объявления (всего: {{ total_count }})</h2> {# Заголовок с общим числом объявлений #}
-<ul>
-    {% for obj in page_items %}
-        {% with item=obj.item can_edit=obj.can_edit %}
-        <li>
-            {% if item.slug %}
-                <h3 class="ad-title"><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h3>
-            {% else %}
-                <h3 class="ad-title">{{ item.title }}</h3>
-            {% endif %}
-            <br>
-            {% if item.image %} {# Если есть изображение — выводим его #}
-                <img src="{{ item.image.url }}" alt="{{ item.title }}" width="150">
-            {% endif %}
-            <p>Автор: {{ item.user.username }}</p>
-            <p><strong>Стоимость:</strong> {{ item.price }} руб.</p>
-            <p><strong>Стоимость аренды:</strong> {{ item.price_arenda_car }} руб/час.</p>
-            <p><strong>Дата публикации:</strong> {{ item.created_at|date:"d.m.Y H:i" }}</p>
-            {% if can_edit %}
-                <div class="ad-actions">
-                    <a href="{% url 'bboard:delete' slug=item.slug %}" class="btn btn-danger">Удалить</a>
-                    <a href="{% url 'bboard:edit' slug=item.slug %}" class="btn btn-warning">Редактировать</a>
+    
+    <h2>{{ post_text }}</h2>
+    
+    {% if page_obj|length == 0 %}
+        <h3>По вашему запросу ничего не найдено!</h3>
+    {% else %}
+        <div class="post-list">
+            {% for addd in page_obj %}
+                <div class="post-item">
+                    <div>
+                        <a href="{% url 'bboard:user_addd' user_id=addd.author.pk %}">
+                            <h3><b>{{ addd.author }}</b></h3>
+                        </a>
+                    </div>
+                    {% if addd.image %}
+                        <img src="{{ addd.image.url }}" width="150px" height="auto">
+                    {% else %}
+                        <img src="{% static 'img/no_image.jpg' %}" width="150px" height="auto">
+                    {% endif %}
+                    <h4><a href="{{ addd.get_absolute_url }}">{{ addd.title }}</a></h4>
+                    <p>{{ addd.content }}</p>
+                    <p><strong>Марка:</strong> {{ addd.brand }}</p>
+                    <p><strong>Модель:</strong> {{ addd.model }}</p>
+                    <p><strong>Год выпуска:</strong> {{ addd.year }}</p>
+                    <p><strong>Цена:</strong> {{ addd.price }} ₽</p>
+                    <p>{{ addd.created_at }}</p>
                 </div>
-            {% endif %}
-        </li>
-        {% endwith %}
-    {% empty %}
-        <li>Нет объявлений</li>
-    {% endfor %}
-</ul>
-
-{# Блок пагинации (переключение между страницами) #}
-
-<div class="pagination">
-    {% if page_obj.has_previous %}
-        <a href="?page=1" class="btn btn-secondary">&laquo; первая</a>
-        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">назад</a>
+            {% endfor %}
+        </div>
+        
+        <div class="pagination">
+            <div class="step-links">
+                <form method="get" style="display: inline;">
+                    {% if page_obj.has_previous %}
+                        <button type="submit" name="page" value="1">&laquo; Первая</button>
+                        <button type="submit" name="page" value="{{ page_obj.previous_page_number }}">Предыдущая</button>
+                    {% endif %}
+                    <span class="current">
+                        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                    </span>
+                    {% if page_obj.has_next %}
+                        <button type="submit" name="page" value="{{ page_obj.next_page_number }}">Следующая</button>
+                        <button type="submit" name="page" value="{{ page_obj.paginator.num_pages }}">Последняя &raquo;</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
     {% endif %}
+{% endblock content %}
 
-    <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages  }}</span>
-
-    {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">вперёд</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary">последняя &raquo;</a>
-    {% endif %}
-</div>
-{% endblock %}

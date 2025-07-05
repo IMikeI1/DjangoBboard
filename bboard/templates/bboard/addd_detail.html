@@ -1,0 +1,46 @@
+{% extends 'bboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="update-list">
+    <h2>Информация о объявление № {{ addd.pk }}</h2>
+    {% if user.is_authenticated %}
+    <a href="{% url 'bboard:user_info' pk=addd.author.id %}">
+        <b>{{ addd.author }}</b>
+    </a>
+    {% else %}
+        <b>{{ addd.author }}</b>
+    {% endif %}
+    <hr>
+    <h3>{{ addd.title }}</h3>
+    {% if addd.image %}
+        <img src="{{ addd.image.url }}" width="200px" height="auto">
+    {% else %}
+        <img src="{% static 'img/no_image.jpg' %}" width="200px" height="auto">
+    {% endif %}
+    <p>{{ addd.text }}</p>
+    <p>{{ addd.created_at }}</p>
+    {% if user == addd.author %}
+    <div class='btn-actions'>
+        <div class='btn-edit-post'>
+            <a href="{% url 'bboard:update_addd' slug=addd.slug %}">
+                <button type="button" class="custom-button">Редактировать</button>
+            </a>
+        </div>
+        <div class='btn-del-post'>
+            <a href="{% url 'bboard:addd_delete' addd_id=addd.id %}">
+                <button type="button" class="custom-button">Удалить</button>
+            </a>
+        </div>
+    </div>
+    {% elif user.is_superuser %}
+    <div class='btn-actions'>
+        <div class='btn-del-post'>
+            <a href="{% url 'bboard:addd_delete' addd_id=addd.id %}">
+                <button type="button" class="custom-button">Удалить</button>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}

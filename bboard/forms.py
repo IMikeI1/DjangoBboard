@@ -1,46 +1,50 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Bboard
+from .models import Addd
 
-class BboardForm(forms.ModelForm):
+
+# class PostForm(forms.Form):
+#     title = forms.CharField(max_length=200, label='Заголовок')
+#     text = forms.CharField(widget=forms.Textarea, label='Текст поста')
+#     author = forms.ModelChoiceField(queryset=User.objects.all(), label='Автор')
+#     image = forms.ImageField(required=False, label='Изображение')
+
+class AdddForm(forms.ModelForm):
+    # Дополняем конструктор родительского класса
+    def __init__(self, *args, **kwargs):
+        # получаем author из именованных вргументов (его передали во views)
+        author = kwargs.pop('author', None)
+        # вызывем конгструктор родительского класса
+        super(AdddForm, self).__init__(*args, **kwargs)
+        # устанавливаем начальное значение поля author
+        self.fields['author'].initial = author
+        # отключаем видимость этого поля в форме
+        self.fields['author'].disabled = True
+        self.fields['author'].widget = forms.HiddenInput()
+
+
     class Meta:
-        model = Bboard
-        fields = ['title', 'content', 'image', 'year', 'mileage', 'condition',
-                  'modification', 'engine_volume', 'engine_type', 'transmission', 'drive',
-                  'equipment', 'body_type', 'color', 'steering_wheel', 'price', 'price_arenda_car']
-        widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control'}),
-            'year': forms.NumberInput(attrs={'class': 'form-control'}),
-            'mileage': forms.NumberInput(attrs={'class': 'form-control'}),
-            'condition': forms.TextInput(attrs={'class': 'form-control'}),
-            'modification': forms.TextInput(attrs={'class': 'form-control'}),
-            'engine_volume': forms.TextInput(attrs={'class': 'form-control'}),
-            'engine_type': forms.TextInput(attrs={'class': 'form-control'}),
-            'transmission': forms.TextInput(attrs={'class': 'form-control'}),
-            'drive': forms.TextInput(attrs={'class': 'form-control'}),
-            'equipment': forms.TextInput(attrs={'class': 'form-control'}),
-            'body_type': forms.TextInput(attrs={'class': 'form-control'}),
-            'color': forms.TextInput(attrs={'class': 'form-control'}),
-            'steering_wheel': forms.TextInput(attrs={'class': 'form-control'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control'}),
-            'price_arenda_car': forms.NumberInput(attrs={'class': 'form-control'}),
-        }
+        model = Addd
+        fields = ['author', 'title', 'content', 'image', 'brand', 'model', 'year', 'price']
+        
+        labels = {
+        'author': 'author',
+        'title': 'Заголовок',
+        'text': 'Текст поста',
+        'image': 'Изображение',
+        'price': 'Цена',
+        'brand': 'Марка',
+        'model': 'Модель',
+        'year': 'Год Выпуска'
+        
+    }
 
-    def save(self, commit=True, user=None):
-        instance = super().save(commit=False)
-        if user:
-            instance.user = user
-        if commit:
-            instance.save()
-        return instance 
-    
-    
-    
-    
 class FilterForm(forms.Form):
-    author = forms.ModelMultipleChoiceField(queryset=User.objects.all(), label='Автор')
-    created_at = forms.DateField(label='Дата публикации', 
-                                 widget=forms.DateInput(attrs={'type':'date'}),
+    author = forms.ModelChoiceField(queryset=User.objects.all(), label='Автор', required=False)
+    created_at = forms.DateField(label='Дата публикации',
+                                 widget=forms.DateInput(attrs={'type': 'date'}),
                                  input_formats=['%Y-%m-%d'],
                                  required=False)
+
+    
+    
