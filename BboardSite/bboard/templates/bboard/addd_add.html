@@ -1,0 +1,12 @@
+{% extends 'bboard/base.html' %}
+
+{% block content %}
+<div class="ads_add">
+<h2>Добавить новое объявление</h2>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="custom-button">Добавить объявление</button>
+</form>
+</div>
+{% endblock content %}
